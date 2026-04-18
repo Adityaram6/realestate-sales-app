@@ -1,0 +1,646 @@
+// Real Estate Sales App — Prisma schema
+// Domain rules honored:
+// - UNIQUE(lead_id, project_id) on opportunities (property_id nullable, assigned later)
+// - Pipeline stages: NEW → CONTACTED → SITE_VISIT_SCHEDULED → SITE_VISIT_DONE → NEGOTIATION → CLOSED_WON | CLOSED_LOST
+// - Project code format: PRJ-YYYY-NNNN (generated in service layer)
+// - Soft delete for leads + projects (status inactive / deletedAt)
+// - DPDP consent captured with timestamp on every lead
+// - Phone uniqueness is a warn-not-block (no unique constraint; duplicates surfaced at app layer)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  SALES
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProjectStatus {
+  ACTIVE
+  DRAFT
+  INACTIVE
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+enum LeadStatus {
+  HOT
+  WARM
+  COLD
+}
+
+enum OpportunityStage {
+  NEW
+  CONTACTED
+  SITE_VISIT_SCHEDULED
+  SITE_VISIT_DONE
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  WHATSAPP
+  NOTE
+  MEETING
+  SYSTEM
+}
+
+enum MessageChannel {
+  WHATSAPP
+  EMAIL
+  SMS
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  phone        String?
+  passwordHash String
+  role         UserRole   @default(SALES)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  projectsCreated       Project[]                 @relation("project_created_by")
+  documentsUploaded     ProjectDocument[]         @relation("document_uploaded_by")
+  leadsAssigned         Lead[]                    @relation("lead_assigned_to")
+  opportunitiesAssigned Opportunity[]             @relation("opportunity_assigned_to")
+  stageChanges          OpportunityStageHistory[]
+  activitiesCreated     Activity[]                @relation("activity_created_by")
+  tasksAssigned         Task[]                    @relation("task_assigned_to")
+  messagesSent          Message[]                 @relation("message_sent_by")
+  aiInteractions        AiInteraction[]
+  auditLogs             AuditLog[]
+  campaignsCreated      Campaign[]                @relation("campaign_created_by")
+  socialAccounts        SocialAccount[]           @relation("social_account_owner")
+  flowsCreated          CampaignFlow[]            @relation("flow_created_by")
+
+  @@map("users")
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  projectCode  String        @unique
+  name         String
+  description  String?
+  locationText String
+  latitude     Float?
+  longitude    Float?
+  propertyType String
+  tags         String[]      @default([])
+  status       ProjectStatus @default(ACTIVE)
+  createdById  String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  createdBy     User              @relation("project_created_by", fields: [createdById], references: [id])
+  properties    Property[]
+  documents     ProjectDocument[]
+  opportunities Opportunity[]
+  activities    Activity[]
+  campaigns     Campaign[]
+
+  @@unique([name, locationText])
+  @@index([status])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model Property {
+  id         String         @id @default(cuid())
+  projectId  String
+  unitNumber String
+  size       Float
+  sizeUnit   String
+  price      Float
+  facing     String?
+  status     PropertyStatus @default(AVAILABLE)
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  opportunities Opportunity[]
+
+  @@unique([projectId, unitNumber])
+  @@map("properties")
+}
+
+model ProjectDocument {
+  id           String   @id @default(cuid())
+  projectId    String
+  fileName     String
+  fileUrl      String
+  fileType     String
+  fileSize     Int
+  mimeType     String
+  version      Int      @default(1)
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation("document_uploaded_by", fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+  @@map("project_documents")
+}
+
+model Lead {
+  id                 String      @id @default(cuid())
+  name               String
+  phone              String
+  email              String?
+  source             String?
+  budgetMin          Int?
+  budgetMax          Int?
+  locationPreference String?
+  tags               String[]    @default([])
+  status             LeadStatus?
+  score              Int?
+  assignedToId       String?
+  consentGiven       Boolean     @default(false)
+  consentTimestamp   DateTime?
+  customFields       Json?
+  deletedAt          DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  assignedTo    User?         @relation("lead_assigned_to", fields: [assignedToId], references: [id])
+  opportunities Opportunity[]
+  activities    Activity[]
+  messages      Message[]
+  tasks         Task[]
+  scores        LeadScore[]
+  campaignAudience CampaignAudience[]
+  flowExecutions   FlowExecution[]
+
+  @@index([phone])
+  @@index([email])
+  @@index([assignedToId])
+  @@index([deletedAt])
+  @@map("leads")
+}
+
+model Opportunity {
+  id           String           @id @default(cuid())
+  leadId       String
+  projectId    String
+  propertyId   String?
+  stage        OpportunityStage @default(NEW)
+  probability  Int?
+  assignedToId String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  lead         Lead                      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  project      Project                   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  property     Property?                 @relation(fields: [propertyId], references: [id])
+  assignedTo   User?                     @relation("opportunity_assigned_to", fields: [assignedToId], references: [id])
+  stageHistory OpportunityStageHistory[]
+  activities   Activity[]
+  messages     Message[]
+  tasks        Task[]
+  aiInteractions AiInteraction[]
+
+  @@unique([leadId, projectId])
+  @@index([stage])
+  @@index([assignedToId])
+  @@map("opportunities")
+}
+
+model OpportunityStageHistory {
+  id            String            @id @default(cuid())
+  opportunityId String
+  oldStage      OpportunityStage?
+  newStage      OpportunityStage
+  changedById   String
+  changedAt     DateTime          @default(now())
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  changedBy   User        @relation(fields: [changedById], references: [id])
+
+  @@index([opportunityId])
+  @@map("opportunity_stage_history")
+}
+
+model Activity {
+  id              String       @id @default(cuid())
+  type            ActivityType
+  leadId          String
+  opportunityId   String?
+  projectId       String?
+  title           String
+  description     String?
+  durationMinutes Int?
+  outcome         String?
+  metadata        Json?
+  createdById     String
+  createdAt       DateTime     @default(now())
+
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+  project     Project?     @relation(fields: [projectId], references: [id])
+  createdBy   User         @relation("activity_created_by", fields: [createdById], references: [id])
+
+  @@index([leadId])
+  @@index([opportunityId])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+model Task {
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  dueDate       DateTime
+  status        TaskStatus @default(PENDING)
+  assignedToId  String
+  leadId        String?
+  opportunityId String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  assignedTo  User         @relation("task_assigned_to", fields: [assignedToId], references: [id])
+  lead        Lead?        @relation(fields: [leadId], references: [id])
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@index([assignedToId, status])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model Message {
+  id            String           @id @default(cuid())
+  leadId        String
+  opportunityId String?
+  channel       MessageChannel
+  direction     MessageDirection
+  messageText   String
+  mediaUrl      String?
+  status        MessageStatus    @default(SENT)
+  sentById      String?
+  externalId    String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+  sentBy      User?        @relation("message_sent_by", fields: [sentById], references: [id])
+
+  @@index([leadId])
+  @@index([externalId])
+  @@map("messages")
+}
+
+model AiInteraction {
+  id            String   @id @default(cuid())
+  leadId        String?
+  opportunityId String?
+  inputContext  Json
+  prompt        String
+  response      String
+  modelUsed     String
+  tokensUsed    Int?
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+  createdBy   User?        @relation(fields: [createdById], references: [id])
+
+  @@index([leadId])
+  @@index([opportunityId])
+  @@map("ai_interactions")
+}
+
+model AiRecommendation {
+  id                 String   @id @default(cuid())
+  leadId             String?
+  opportunityId      String?
+  recommendationType String
+  content            Json
+  confidenceScore    Int?
+  createdAt          DateTime @default(now())
+
+  @@index([leadId])
+  @@index([opportunityId])
+  @@map("ai_recommendations")
+}
+
+model LeadScore {
+  id           String     @id @default(cuid())
+  leadId       String
+  score        Int
+  label        LeadStatus
+  factors      Json
+  calculatedAt DateTime   @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@map("lead_scores")
+}
+
+model PipelineStage {
+  id         String   @id @default(cuid())
+  name       String
+  orderIndex Int
+  isDefault  Boolean  @default(false)
+  isClosed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([orderIndex])
+  @@map("pipeline_stages")
+}
+
+model Integration {
+  id        String   @id @default(cuid())
+  type      String   @unique
+  status    String   @default("not_configured")
+  config    Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("integrations")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  entityType    String
+  entityId      String
+  action        String
+  oldValue      Json?
+  newValue      Json?
+  performedById String
+  createdAt     DateTime @default(now())
+
+  performedBy User @relation(fields: [performedById], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ----- Phase 2: Marketing Automation -----
+
+enum CampaignType {
+  WHATSAPP_BLAST
+  EMAIL_BLAST
+  SOCIAL
+  MULTI_CHANNEL
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+enum CampaignAudienceStatus {
+  PENDING
+  SENT
+  DELIVERED
+  RESPONDED
+  FAILED
+  UNSUBSCRIBED
+}
+
+enum CampaignMessageStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+  FAILED
+}
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+}
+
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum FlowTriggerType {
+  LEAD_ADDED
+  STAGE_CHANGED
+  CAMPAIGN_AUDIENCE_ADDED
+  MANUAL
+}
+
+enum FlowStepType {
+  SEND_WHATSAPP
+  SEND_EMAIL
+  SEND_SMS
+  WAIT
+  CREATE_TASK
+  CONDITION
+}
+
+enum FlowExecutionStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Campaign {
+  id             String         @id @default(cuid())
+  name           String
+  description    String?
+  projectId      String?
+  type           CampaignType
+  status         CampaignStatus @default(DRAFT)
+  audienceFilter Json?          // {status, tags, projectId, minScore, source}
+  startDate      DateTime?
+  endDate        DateTime?
+  createdById    String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  project     Project?           @relation(fields: [projectId], references: [id])
+  createdBy   User               @relation("campaign_created_by", fields: [createdById], references: [id])
+  audience    CampaignAudience[]
+  messages    CampaignMessage[]
+  socialPosts SocialPost[]
+  flows       CampaignFlow[]
+
+  @@index([status])
+  @@index([projectId])
+  @@map("campaigns")
+}
+
+model CampaignAudience {
+  id         String                 @id @default(cuid())
+  campaignId String
+  leadId     String
+  status     CampaignAudienceStatus @default(PENDING)
+  sentAt     DateTime?
+  respondedAt DateTime?
+  errorMessage String?
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, leadId])
+  @@index([campaignId, status])
+  @@map("campaign_audience")
+}
+
+model CampaignMessage {
+  id          String                @id @default(cuid())
+  campaignId  String
+  channel     MessageChannel
+  content     String
+  mediaUrl    String?
+  scheduledAt DateTime?
+  status      CampaignMessageStatus @default(DRAFT)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@map("campaign_messages")
+}
+
+model SocialAccount {
+  id           String         @id @default(cuid())
+  platform     SocialPlatform
+  accountName  String
+  accessToken  String
+  refreshToken String?
+  status       String         @default("connected") // connected / expired / revoked
+  createdById  String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  createdBy User         @relation("social_account_owner", fields: [createdById], references: [id])
+  posts     SocialPost[]
+
+  @@unique([platform, accountName])
+  @@map("social_accounts")
+}
+
+model SocialPost {
+  id              String           @id @default(cuid())
+  campaignId      String?
+  socialAccountId String?
+  platform        SocialPlatform
+  content         String
+  mediaUrl        String?
+  scheduledAt     DateTime?
+  publishedAt     DateTime?
+  status          SocialPostStatus @default(DRAFT)
+  externalPostId  String?
+  errorMessage    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  campaign      Campaign?      @relation(fields: [campaignId], references: [id])
+  socialAccount SocialAccount? @relation(fields: [socialAccountId], references: [id])
+
+  @@index([campaignId])
+  @@index([status])
+  @@map("social_posts")
+}
+
+// ----- Phase 3b: Trigger-based flow automation -----
+
+model CampaignFlow {
+  id            String          @id @default(cuid())
+  name          String
+  description   String?
+  campaignId    String?
+  trigger       FlowTriggerType
+  triggerConfig Json?
+  isActive      Boolean         @default(false)
+  createdById   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  campaign   Campaign?       @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  createdBy  User            @relation("flow_created_by", fields: [createdById], references: [id])
+  steps      FlowStep[]
+  executions FlowExecution[]
+
+  @@index([trigger, isActive])
+  @@map("campaign_flows")
+}
+
+model FlowStep {
+  id         String       @id @default(cuid())
+  flowId     String
+  orderIndex Int
+  type       FlowStepType
+  config     Json
+  createdAt  DateTime     @default(now())
+
+  flow CampaignFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@index([flowId, orderIndex])
+  @@map("flow_steps")
+}
+
+model FlowExecution {
+  id               String              @id @default(cuid())
+  flowId           String
+  leadId           String
+  currentStepIndex Int                 @default(0)
+  status           FlowExecutionStatus @default(RUNNING)
+  triggerData      Json?
+  startedAt        DateTime            @default(now())
+  completedAt      DateTime?
+  errorMessage     String?
+  stepsCompleted   Int                 @default(0)
+
+  flow CampaignFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  lead Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, status])
+  @@index([flowId, status])
+  @@map("flow_executions")
+}
