@@ -15,12 +15,19 @@ const EXEC_VARIANT: Record<
   CANCELLED: "muted",
 };
 
+const EXEC_LABEL: Record<FlowExecutionStatus, string> = {
+  RUNNING: "Running",
+  COMPLETED: "Completed",
+  FAILED: "Failed",
+  CANCELLED: "Cancelled",
+};
+
 export function FlowExecutionStatusBadge({
   status,
 }: {
   status: FlowExecutionStatus;
 }) {
-  return <Badge variant={EXEC_VARIANT[status]}>{status}</Badge>;
+  return <Badge variant={EXEC_VARIANT[status]}>{EXEC_LABEL[status]}</Badge>;
 }
 
 export function FlowTriggerBadge({ trigger }: { trigger: FlowTriggerType }) {
