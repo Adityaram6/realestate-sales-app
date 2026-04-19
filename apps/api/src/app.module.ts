@@ -18,7 +18,6 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { CampaignsModule } from "./campaigns/campaigns.module";
 import { SocialModule } from "./social/social.module";
 import { FlowsModule } from "./flows/flows.module";
-import { QueueModule } from "./queue/queue.module";
 import { HealthModule } from "./health/health.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { GlobalExceptionFilter } from "./common/filters/http-exception.filter";
@@ -44,7 +43,6 @@ import { RequestLoggingInterceptor } from "./common/interceptors/logging.interce
     SettingsModule,
     NotificationsModule,
     DashboardModule,
-    QueueModule,
     CampaignsModule,
     SocialModule,
     FlowsModule,

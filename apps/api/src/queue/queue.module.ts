@@ -1,4 +1,4 @@
-import { Global, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Redis } from "ioredis";
@@ -11,11 +11,14 @@ import { FlowsProcessor } from "./flows.processor";
 export const CAMPAIGN_QUEUE = "campaigns";
 
 /**
- * Global queue module. Processors use ModuleRef to fetch domain services
- * at runtime instead of importing them — avoids the circular dependency
- * (controllers → queue service, processors → domain service).
+ * Queue module — explicitly imported by consuming modules (CampaignsModule,
+ * FlowsModule) rather than global. Being @Global interacts badly with
+ * @nestjs/bullmq's internal provider scan and triggers a false circular
+ * dependency error during module bootstrap.
+ *
+ * Processors still use ModuleRef to fetch domain services at runtime —
+ * that's what avoids the actual circular (QueueModule → service → QueueModule).
  */
-@Global()
 @Module({
   imports: [
     BullModule.forRootAsync({
@@ -64,6 +67,6 @@ export const CAMPAIGN_QUEUE = "campaigns";
     FlowsQueueService,
     FlowsProcessor,
   ],
-  exports: [CampaignsQueueService, FlowsQueueService, BullModule],
+  exports: [CampaignsQueueService, FlowsQueueService],
 })
 export class QueueModule {}
