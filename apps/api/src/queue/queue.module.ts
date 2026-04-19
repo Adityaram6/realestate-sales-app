@@ -1,6 +1,7 @@
 import { Global, Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { Redis } from "ioredis";
 import type { AppConfig } from "../config/configuration";
 import { CampaignsQueueService } from "./campaigns-queue.service";
 import { CampaignsProcessor } from "./campaigns.processor";
@@ -20,13 +21,23 @@ export const CAMPAIGN_QUEUE = "campaigns";
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService<AppConfig, true>) => ({
-        connection: {
-          host: config.get("redis", { infer: true }).host,
-          port: config.get("redis", { infer: true }).port,
-          password: config.get("redis", { infer: true }).password,
-        },
-      }),
+      useFactory: (config: ConfigService<AppConfig, true>) => {
+        const redis = config.get("redis", { infer: true });
+        // If a full URL is provided (e.g. Upstash rediss://…) construct the
+        // IORedis instance ourselves — ioredis picks up TLS from the rediss://
+        // scheme. Otherwise fall back to discrete host/port/password.
+        const connection = redis.url
+          ? new Redis(redis.url, {
+              maxRetriesPerRequest: null,
+              enableReadyCheck: false,
+            })
+          : {
+              host: redis.host,
+              port: redis.port,
+              password: redis.password,
+            };
+        return { connection };
+      },
     }),
     BullModule.registerQueue({
       name: CAMPAIGN_QUEUE,

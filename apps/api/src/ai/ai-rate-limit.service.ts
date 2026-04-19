@@ -39,6 +39,7 @@ export class AiRateLimitService implements OnModuleInit, OnModuleDestroy {
   private redis: Redis | null = null;
   private readonly requestLimit: number;
   private readonly tokenLimit: number;
+  private readonly redisUrl?: string;
   private readonly redisHost: string;
   private readonly redisPort: number;
   private readonly redisPassword?: string;
@@ -48,19 +49,26 @@ export class AiRateLimitService implements OnModuleInit, OnModuleDestroy {
     this.requestLimit = limits.dailyRequestLimit;
     this.tokenLimit = limits.dailyTokenLimit;
     const redis = config.get("redis", { infer: true });
+    this.redisUrl = redis.url;
     this.redisHost = redis.host;
     this.redisPort = redis.port;
     this.redisPassword = redis.password;
   }
 
   onModuleInit() {
-    this.redis = new Redis({
-      host: this.redisHost,
-      port: this.redisPort,
-      password: this.redisPassword,
-      lazyConnect: true,
-      maxRetriesPerRequest: 2,
-    });
+    // Prefer URL form (Upstash: rediss://…) — ioredis handles TLS via scheme.
+    this.redis = this.redisUrl
+      ? new Redis(this.redisUrl, {
+          lazyConnect: true,
+          maxRetriesPerRequest: 2,
+        })
+      : new Redis({
+          host: this.redisHost,
+          port: this.redisPort,
+          password: this.redisPassword,
+          lazyConnect: true,
+          maxRetriesPerRequest: 2,
+        });
     this.redis.connect().catch((err) => {
       this.logger.warn(
         `Redis connect failed — rate limiter will fail-open: ${(err as Error).message}`,
