@@ -28,6 +28,14 @@ const prisma = new PrismaClient();
 const PASSWORD = "password";
 
 async function main() {
+  // Idempotency guard — if the DB already has users, assume it's been seeded
+  // and bail. Lets the deploy script call this unconditionally on every boot.
+  const existing = await prisma.user.count();
+  if (existing > 0) {
+    console.log(`✓ Database already has ${existing} users — skipping seed`);
+    return;
+  }
+
   console.log("🌱 Seeding database…");
 
   // Clear in dependency-safe order.
