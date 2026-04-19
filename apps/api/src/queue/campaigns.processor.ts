@@ -5,9 +5,9 @@ import type { Job } from "bullmq";
 import { CampaignsService } from "../campaigns/campaigns.service";
 import {
   CAMPAIGN_EXECUTE_JOB,
+  CAMPAIGN_QUEUE,
   type ExecuteCampaignJob,
 } from "./campaigns-queue.service";
-import { CAMPAIGN_QUEUE } from "./queue.module";
 
 /**
  * Fetches CampaignsService at runtime via ModuleRef so we don't need to

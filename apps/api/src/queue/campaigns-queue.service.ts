@@ -1,14 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
-import { CAMPAIGN_QUEUE } from "./queue.module";
+
+export const CAMPAIGN_QUEUE = "campaigns";
+export const CAMPAIGN_EXECUTE_JOB = "execute-campaign";
 
 export interface ExecuteCampaignJob {
   campaignId: string;
   userId: string;
 }
-
-export const CAMPAIGN_EXECUTE_JOB = "execute-campaign";
 
 @Injectable()
 export class CampaignsQueueService {

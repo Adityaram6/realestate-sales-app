@@ -3,12 +3,13 @@ import { BullModule } from "@nestjs/bullmq";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Redis } from "ioredis";
 import type { AppConfig } from "../config/configuration";
-import { CampaignsQueueService } from "./campaigns-queue.service";
+import {
+  CAMPAIGN_QUEUE,
+  CampaignsQueueService,
+} from "./campaigns-queue.service";
 import { CampaignsProcessor } from "./campaigns.processor";
 import { FlowsQueueService, FLOW_QUEUE } from "./flows-queue.service";
 import { FlowsProcessor } from "./flows.processor";
-
-export const CAMPAIGN_QUEUE = "campaigns";
 
 /**
  * Queue module — explicitly imported by consuming modules (CampaignsModule,
