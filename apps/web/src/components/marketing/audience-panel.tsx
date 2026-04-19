@@ -47,12 +47,12 @@ const AUDIENCE_STATUS_VARIANT: Record<
   CampaignAudienceStatus,
   "muted" | "default" | "success" | "destructive" | "warning" | "secondary"
 > = {
-  pending: "muted",
-  sent: "default",
-  delivered: "default",
-  responded: "success",
-  failed: "destructive",
-  unsubscribed: "warning",
+  PENDING: "muted",
+  SENT: "default",
+  DELIVERED: "default",
+  RESPONDED: "success",
+  FAILED: "destructive",
+  UNSUBSCRIBED: "warning",
 };
 
 interface AudiencePanelProps {

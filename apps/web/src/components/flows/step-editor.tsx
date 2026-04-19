@@ -44,21 +44,21 @@ interface StepEditorProps {
 }
 
 const ICON: Record<FlowStepType, typeof Clock> = {
-  send_whatsapp: MessageSquare,
-  send_email: Mail,
-  send_sms: Smartphone,
-  wait: Clock,
-  create_task: CheckSquare,
-  condition: GitBranch,
+  SEND_WHATSAPP: MessageSquare,
+  SEND_EMAIL: Mail,
+  SEND_SMS: Smartphone,
+  WAIT: Clock,
+  CREATE_TASK: CheckSquare,
+  CONDITION: GitBranch,
 };
 
 const ACCENT: Record<FlowStepType, string> = {
-  send_whatsapp: "bg-emerald-100 text-emerald-700",
-  send_email: "bg-indigo-100 text-indigo-700",
-  send_sms: "bg-sky-100 text-sky-700",
-  wait: "bg-amber-100 text-amber-700",
-  create_task: "bg-violet-100 text-violet-700",
-  condition: "bg-slate-100 text-slate-700",
+  SEND_WHATSAPP: "bg-emerald-100 text-emerald-700",
+  SEND_EMAIL: "bg-indigo-100 text-indigo-700",
+  SEND_SMS: "bg-sky-100 text-sky-700",
+  WAIT: "bg-amber-100 text-amber-700",
+  CREATE_TASK: "bg-violet-100 text-violet-700",
+  CONDITION: "bg-slate-100 text-slate-700",
 };
 
 export function StepEditor({ steps, onChange, disabled }: StepEditorProps) {

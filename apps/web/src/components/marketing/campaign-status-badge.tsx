@@ -6,24 +6,24 @@ import {
 } from "@realestate/shared";
 
 const STATUS_LABEL: Record<CampaignStatus, string> = {
-  draft: "Draft",
-  scheduled: "Scheduled",
-  active: "Active",
-  paused: "Paused",
-  completed: "Completed",
-  failed: "Failed",
+  DRAFT: "Draft",
+  SCHEDULED: "Scheduled",
+  ACTIVE: "Active",
+  PAUSED: "Paused",
+  COMPLETED: "Completed",
+  FAILED: "Failed",
 };
 
 const STATUS_VARIANT: Record<
   CampaignStatus,
   "muted" | "warning" | "default" | "secondary" | "success" | "destructive"
 > = {
-  draft: "muted",
-  scheduled: "warning",
-  active: "default",
-  paused: "secondary",
-  completed: "success",
-  failed: "destructive",
+  DRAFT: "muted",
+  SCHEDULED: "warning",
+  ACTIVE: "default",
+  PAUSED: "secondary",
+  COMPLETED: "success",
+  FAILED: "destructive",
 };
 
 export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {

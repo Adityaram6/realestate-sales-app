@@ -19,7 +19,7 @@ export const campaignStore: Campaign[] = [
     projectId: "prj-1",
     type: CampaignType.WHATSAPP_BLAST,
     status: CampaignStatus.DRAFT,
-    audienceFilter: { status: "warm", minScore: 50 },
+    audienceFilter: { status: "WARM", minScore: 50 },
     createdById: "u-1",
     createdAt: new Date(now - day * 2).toISOString(),
     updatedAt: new Date(now - day * 1).toISOString(),

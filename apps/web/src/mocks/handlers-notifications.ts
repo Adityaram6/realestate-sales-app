@@ -45,7 +45,7 @@ function compute(): NotificationsResponse {
 
   // Overdue + due-today tasks
   for (const task of taskStore) {
-    if (task.status !== "pending") continue;
+    if (task.status !== "PENDING") continue;
     const due = new Date(task.dueDate).getTime();
     const diffDays = Math.floor((due - now) / (1000 * 60 * 60 * 24));
     if (diffDays < 0) {

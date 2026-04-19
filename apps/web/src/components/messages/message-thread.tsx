@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { extractApiError } from "@/lib/api-client";
 import { messagesApi, type Message } from "@/lib/messages-api";
 import { formatDateTime, formatRelativeTime, cn } from "@/lib/utils";
-import { MessageChannel, MessageDirection } from "@realestate/shared";
+import { MessageChannel, MessageDirection, MessageStatus } from "@realestate/shared";
 
 interface MessageThreadProps {
   leadId: string;
@@ -45,7 +45,8 @@ export function MessageThread({ leadId, opportunityId }: MessageThreadProps) {
       const hasPending = msgs.some(
         (m) =>
           m.direction === MessageDirection.OUTBOUND &&
-          (m.status === "sent" || m.status === "delivered"),
+          (m.status === MessageStatus.SENT ||
+            m.status === MessageStatus.DELIVERED),
       );
       return hasPending ? 1500 : false;
     },

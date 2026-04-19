@@ -62,7 +62,12 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
       [OpportunityStage.CLOSED_WON]: [],
       [OpportunityStage.CLOSED_LOST]: [],
     };
-    for (const o of merged) groups[o.stage].push(o);
+    // Guard against an unknown stage (e.g., API enum drift) so one bad row
+    // doesn't crash the whole board.
+    for (const o of merged) {
+      const bucket = groups[o.stage as OpportunityStage];
+      if (bucket) bucket.push(o);
+    }
     return groups;
   }, [merged]);
 

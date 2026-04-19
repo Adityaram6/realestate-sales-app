@@ -1,45 +1,47 @@
 import type { OpportunityStage } from "../enums";
 
+// Values match the Prisma enum (UPPERCASE) to stay aligned with wire format.
+
 export const FlowTriggerType = {
-  LEAD_ADDED: "lead_added",
-  STAGE_CHANGED: "stage_changed",
-  CAMPAIGN_AUDIENCE_ADDED: "campaign_audience_added",
-  MANUAL: "manual",
+  LEAD_ADDED: "LEAD_ADDED",
+  STAGE_CHANGED: "STAGE_CHANGED",
+  CAMPAIGN_AUDIENCE_ADDED: "CAMPAIGN_AUDIENCE_ADDED",
+  MANUAL: "MANUAL",
 } as const;
 export type FlowTriggerType =
   (typeof FlowTriggerType)[keyof typeof FlowTriggerType];
 
 export const FLOW_TRIGGER_LABEL: Record<FlowTriggerType, string> = {
-  lead_added: "Lead added",
-  stage_changed: "Stage changed",
-  campaign_audience_added: "Audience added to campaign",
-  manual: "Manual trigger",
+  LEAD_ADDED: "Lead added",
+  STAGE_CHANGED: "Stage changed",
+  CAMPAIGN_AUDIENCE_ADDED: "Audience added to campaign",
+  MANUAL: "Manual trigger",
 };
 
 export const FlowStepType = {
-  SEND_WHATSAPP: "send_whatsapp",
-  SEND_EMAIL: "send_email",
-  SEND_SMS: "send_sms",
-  WAIT: "wait",
-  CREATE_TASK: "create_task",
-  CONDITION: "condition",
+  SEND_WHATSAPP: "SEND_WHATSAPP",
+  SEND_EMAIL: "SEND_EMAIL",
+  SEND_SMS: "SEND_SMS",
+  WAIT: "WAIT",
+  CREATE_TASK: "CREATE_TASK",
+  CONDITION: "CONDITION",
 } as const;
 export type FlowStepType = (typeof FlowStepType)[keyof typeof FlowStepType];
 
 export const FLOW_STEP_LABEL: Record<FlowStepType, string> = {
-  send_whatsapp: "Send WhatsApp",
-  send_email: "Send email",
-  send_sms: "Send SMS",
-  wait: "Wait",
-  create_task: "Create task",
-  condition: "Condition (halt if false)",
+  SEND_WHATSAPP: "Send WhatsApp",
+  SEND_EMAIL: "Send email",
+  SEND_SMS: "Send SMS",
+  WAIT: "Wait",
+  CREATE_TASK: "Create task",
+  CONDITION: "Condition (halt if false)",
 };
 
 export const FlowExecutionStatus = {
-  RUNNING: "running",
-  COMPLETED: "completed",
-  FAILED: "failed",
-  CANCELLED: "cancelled",
+  RUNNING: "RUNNING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
 } as const;
 export type FlowExecutionStatus =
   (typeof FlowExecutionStatus)[keyof typeof FlowExecutionStatus];

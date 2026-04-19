@@ -19,20 +19,22 @@ function httpError(status: number, message: string) {
   return Object.assign(new Error(message), { status });
 }
 
-function activityTitleDefault(type: ActivityType, channel?: string) {
+function activityTitleDefault(type: ActivityType, channel?: string): string {
   switch (type) {
-    case "call":
+    case "CALL":
       return "Call logged";
-    case "whatsapp":
+    case "WHATSAPP":
       return "WhatsApp interaction";
-    case "email":
+    case "EMAIL":
       return "Email exchange";
-    case "note":
+    case "NOTE":
       return "Internal note";
-    case "meeting":
+    case "MEETING":
       return "Meeting";
-    case "system":
+    case "SYSTEM":
       return channel ? `System: ${channel}` : "System event";
+    default:
+      return "Activity";
   }
 }
 
@@ -72,7 +74,7 @@ export const activityMockHandlers: MockHandler[] = [
           title: a.title,
           description: a.description,
           metadata:
-            a.type === "call" && a.outcome
+            a.type === "CALL" && a.outcome
               ? { channel: a.outcome }
               : undefined,
           createdAt: a.createdAt,
@@ -89,11 +91,11 @@ export const activityMockHandlers: MockHandler[] = [
           id: m.id,
           kind: "message",
           type:
-            m.direction === "inbound"
+            m.direction === "INBOUND"
               ? "inbound_message"
               : "outbound_message",
           title:
-            m.direction === "inbound"
+            m.direction === "INBOUND"
               ? `Inbound ${m.channel} message`
               : `Outbound ${m.channel} message`,
           description: m.messageText,

@@ -50,9 +50,9 @@ import {
 import { formatDate } from "@/lib/utils";
 
 const ICON: Record<SocialPlatform, typeof Facebook> = {
-  facebook: Facebook,
-  instagram: Instagram,
-  linkedin: Linkedin,
+  FACEBOOK: Facebook,
+  INSTAGRAM: Instagram,
+  LINKEDIN: Linkedin,
 };
 
 export function SocialAccountsSection() {

@@ -9,10 +9,10 @@ const EXEC_VARIANT: Record<
   FlowExecutionStatus,
   "default" | "success" | "destructive" | "muted"
 > = {
-  running: "default",
-  completed: "success",
-  failed: "destructive",
-  cancelled: "muted",
+  RUNNING: "default",
+  COMPLETED: "success",
+  FAILED: "destructive",
+  CANCELLED: "muted",
 };
 
 export function FlowExecutionStatusBadge({

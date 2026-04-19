@@ -2,18 +2,18 @@ import { Badge } from "@/components/ui/badge";
 import { LeadStatus } from "@realestate/shared";
 
 const LABEL: Record<LeadStatus, string> = {
-  hot: "Hot",
-  warm: "Warm",
-  cold: "Cold",
+  HOT: "Hot",
+  WARM: "Warm",
+  COLD: "Cold",
 };
 
 const VARIANT: Record<
   LeadStatus,
   "destructive" | "warning" | "muted"
 > = {
-  hot: "destructive",
-  warm: "warning",
-  cold: "muted",
+  HOT: "destructive",
+  WARM: "warning",
+  COLD: "muted",
 };
 
 export function LeadStatusBadge({ status }: { status?: LeadStatus }) {

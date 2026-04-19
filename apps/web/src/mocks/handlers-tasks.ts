@@ -25,7 +25,7 @@ export const taskMockHandlers: MockHandler[] = [
         const now = Date.now();
         tasks = tasks.filter(
           (t) =>
-            t.status === "pending" &&
+            t.status === "PENDING" &&
             new Date(t.dueDate).getTime() < now,
         );
       }
@@ -49,7 +49,7 @@ export const taskMockHandlers: MockHandler[] = [
         title: payload.title,
         description: payload.description,
         dueDate: payload.dueDate,
-        status: "pending",
+        status: "PENDING",
         assignedTo: payload.assignedTo ?? "u-3",
         leadId: payload.leadId,
         opportunityId: payload.opportunityId,

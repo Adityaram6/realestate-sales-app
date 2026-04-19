@@ -90,7 +90,7 @@ export function UsersSection() {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={u.status === "active" ? "default" : "muted"}
+                      variant={u.status === "ACTIVE" ? "default" : "muted"}
                     >
                       {u.status}
                     </Badge>

@@ -5,7 +5,7 @@ export interface Task {
   title: string;
   description?: string;
   dueDate: string;
-  status: "pending" | "completed";
+  status: "PENDING" | "COMPLETED";
   assignedTo: string;
   leadId?: string;
   opportunityId?: string;

@@ -9,7 +9,16 @@
       "Bash(pnpm rebuild *)",
       "Bash(pnpm prisma:generate)",
       "Bash(npx tsc *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "mcp__Claude_in_Chrome__find",
+      "mcp__Claude_in_Chrome__read_console_messages",
+      "Bash(pnpm --filter @realestate/shared build)",
+      "Bash(pnpm --filter @realestate/shared typecheck)",
+      "Bash(pnpm --filter web typecheck)",
+      "Bash(pnpm --filter api build)"
     ]
   }
 }

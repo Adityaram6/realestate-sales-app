@@ -1,68 +1,71 @@
 import type { LeadStatus, MessageChannel } from "../enums";
 
+// Values match the Prisma enum (UPPERCASE) to stay aligned with wire format.
+// See packages/shared/src/enums/index.ts for the reasoning.
+
 export const CampaignType = {
-  WHATSAPP_BLAST: "whatsapp_blast",
-  EMAIL_BLAST: "email_blast",
-  SOCIAL: "social",
-  MULTI_CHANNEL: "multi_channel",
+  WHATSAPP_BLAST: "WHATSAPP_BLAST",
+  EMAIL_BLAST: "EMAIL_BLAST",
+  SOCIAL: "SOCIAL",
+  MULTI_CHANNEL: "MULTI_CHANNEL",
 } as const;
 export type CampaignType = (typeof CampaignType)[keyof typeof CampaignType];
 
 export const CAMPAIGN_TYPE_LABEL: Record<CampaignType, string> = {
-  whatsapp_blast: "WhatsApp blast",
-  email_blast: "Email blast",
-  social: "Social post",
-  multi_channel: "Multi-channel",
+  WHATSAPP_BLAST: "WhatsApp blast",
+  EMAIL_BLAST: "Email blast",
+  SOCIAL: "Social post",
+  MULTI_CHANNEL: "Multi-channel",
 };
 
 export const CampaignStatus = {
-  DRAFT: "draft",
-  SCHEDULED: "scheduled",
-  ACTIVE: "active",
-  PAUSED: "paused",
-  COMPLETED: "completed",
-  FAILED: "failed",
+  DRAFT: "DRAFT",
+  SCHEDULED: "SCHEDULED",
+  ACTIVE: "ACTIVE",
+  PAUSED: "PAUSED",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
 } as const;
 export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus];
 
 export const CampaignAudienceStatus = {
-  PENDING: "pending",
-  SENT: "sent",
-  DELIVERED: "delivered",
-  RESPONDED: "responded",
-  FAILED: "failed",
-  UNSUBSCRIBED: "unsubscribed",
+  PENDING: "PENDING",
+  SENT: "SENT",
+  DELIVERED: "DELIVERED",
+  RESPONDED: "RESPONDED",
+  FAILED: "FAILED",
+  UNSUBSCRIBED: "UNSUBSCRIBED",
 } as const;
 export type CampaignAudienceStatus =
   (typeof CampaignAudienceStatus)[keyof typeof CampaignAudienceStatus];
 
 export const CampaignMessageStatus = {
-  DRAFT: "draft",
-  SCHEDULED: "scheduled",
-  SENT: "sent",
-  FAILED: "failed",
+  DRAFT: "DRAFT",
+  SCHEDULED: "SCHEDULED",
+  SENT: "SENT",
+  FAILED: "FAILED",
 } as const;
 export type CampaignMessageStatus =
   (typeof CampaignMessageStatus)[keyof typeof CampaignMessageStatus];
 
 export const SocialPlatform = {
-  FACEBOOK: "facebook",
-  INSTAGRAM: "instagram",
-  LINKEDIN: "linkedin",
+  FACEBOOK: "FACEBOOK",
+  INSTAGRAM: "INSTAGRAM",
+  LINKEDIN: "LINKEDIN",
 } as const;
 export type SocialPlatform = (typeof SocialPlatform)[keyof typeof SocialPlatform];
 
 export const SOCIAL_PLATFORM_LABEL: Record<SocialPlatform, string> = {
-  facebook: "Facebook",
-  instagram: "Instagram",
-  linkedin: "LinkedIn",
+  FACEBOOK: "Facebook",
+  INSTAGRAM: "Instagram",
+  LINKEDIN: "LinkedIn",
 };
 
 export const SocialPostStatus = {
-  DRAFT: "draft",
-  SCHEDULED: "scheduled",
-  PUBLISHED: "published",
-  FAILED: "failed",
+  DRAFT: "DRAFT",
+  SCHEDULED: "SCHEDULED",
+  PUBLISHED: "PUBLISHED",
+  FAILED: "FAILED",
 } as const;
 export type SocialPostStatus =
   (typeof SocialPostStatus)[keyof typeof SocialPostStatus];

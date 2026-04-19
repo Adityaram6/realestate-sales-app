@@ -46,11 +46,11 @@ export default function TasksPage() {
   const filters = useMemo(() => {
     switch (view) {
       case "mine":
-        return { assignedTo: user?.id, status: "pending" as const };
+        return { assignedTo: user?.id, status: "PENDING" as const };
       case "overdue":
         return { overdue: true };
       case "completed":
-        return { status: "completed" as const };
+        return { status: "COMPLETED" as const };
       default:
         return {};
     }
@@ -64,7 +64,7 @@ export default function TasksPage() {
   const toggleMut = useMutation({
     mutationFn: (task: Task) =>
       tasksApi.update(task.id, {
-        status: task.status === "completed" ? "pending" : "completed",
+        status: task.status === "COMPLETED" ? "PENDING" : "COMPLETED",
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -197,8 +197,8 @@ function TaskRow({
   isTogglePending: boolean;
 }) {
   const dueMs = new Date(task.dueDate).getTime();
-  const isOverdue = task.status === "pending" && dueMs < Date.now();
-  const completed = task.status === "completed";
+  const isOverdue = task.status === "PENDING" && dueMs < Date.now();
+  const completed = task.status === "COMPLETED";
 
   return (
     <li className="flex items-start gap-3 rounded-lg border bg-card p-4">

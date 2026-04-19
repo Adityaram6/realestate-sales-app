@@ -2,18 +2,18 @@ import { Badge } from "@/components/ui/badge";
 import { ProjectStatus } from "@realestate/shared";
 
 const LABELS: Record<ProjectStatus, string> = {
-  active: "Active",
-  draft: "Draft",
-  inactive: "Inactive",
+  ACTIVE: "Active",
+  DRAFT: "Draft",
+  INACTIVE: "Inactive",
 };
 
 const VARIANTS: Record<
   ProjectStatus,
   "default" | "secondary" | "muted" | "warning"
 > = {
-  active: "default",
-  draft: "warning",
-  inactive: "muted",
+  ACTIVE: "default",
+  DRAFT: "warning",
+  INACTIVE: "muted",
 };
 
 export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {

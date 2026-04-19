@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { projectsApi } from "@/lib/projects-api";
 import { extractApiError } from "@/lib/api-client";
 import { formatDate } from "@/lib/utils";
+import { PropertyStatus } from "@realestate/shared";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -190,14 +191,17 @@ export default function ProjectDetailPage() {
                 <StatBlock
                   label="Available"
                   value={
-                    data.properties.filter((p) => p.status === "available")
-                      .length
+                    data.properties.filter(
+                      (p) => p.status === PropertyStatus.AVAILABLE,
+                    ).length
                   }
                 />
                 <StatBlock
                   label="Sold"
                   value={
-                    data.properties.filter((p) => p.status === "sold").length
+                    data.properties.filter(
+                      (p) => p.status === PropertyStatus.SOLD,
+                    ).length
                   }
                 />
               </div>
