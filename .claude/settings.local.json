@@ -19,7 +19,8 @@
       "Bash(pnpm --filter @realestate/shared typecheck)",
       "Bash(pnpm --filter web typecheck)",
       "Bash(pnpm --filter api build)",
-      "Bash(curl -s https://realestate-sales-app-production.up.railway.app/api/health --ssl-no-revoke)"
+      "Bash(curl -s https://realestate-sales-app-production.up.railway.app/api/health --ssl-no-revoke)",
+      "Bash(pnpm --filter api add groq-sdk)"
     ]
   }
 }

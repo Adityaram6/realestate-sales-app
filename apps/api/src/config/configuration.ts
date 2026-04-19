@@ -11,8 +11,12 @@ export interface AppConfig {
   };
   corsOrigin: string;
   useMockAi: boolean;
+  /** Which real LLM to call when useMockAi=false. "anthropic" | "groq". */
+  aiProvider: "anthropic" | "groq";
   anthropicApiKey?: string;
   claudeModel: string;
+  groqApiKey?: string;
+  groqModel: string;
   aiRateLimits: {
     dailyRequestLimit: number;
     dailyTokenLimit: number;
@@ -50,8 +54,13 @@ export const configuration = (): AppConfig => ({
   },
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
   useMockAi: process.env.USE_MOCK_AI !== "false",
+  aiProvider: (process.env.AI_PROVIDER === "groq"
+    ? "groq"
+    : "anthropic") as "anthropic" | "groq",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   claudeModel: process.env.CLAUDE_MODEL ?? "claude-sonnet-4-5",
+  groqApiKey: process.env.GROQ_API_KEY,
+  groqModel: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
   aiRateLimits: {
     dailyRequestLimit: parseInt(
       process.env.AI_DAILY_REQUEST_LIMIT ?? "50",

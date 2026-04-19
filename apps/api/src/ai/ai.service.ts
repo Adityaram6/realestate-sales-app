@@ -27,11 +27,23 @@ import {
   type StrategyOutput,
 } from "./ai.engine";
 import { ClaudeProvider } from "./claude.provider";
+import { GroqProvider } from "./groq.provider";
 import {
   AiRateLimitExceededError,
   AiRateLimitService,
 } from "./ai-rate-limit.service";
 import type { AppConfig } from "../config/configuration";
+
+/**
+ * Minimal shape both ClaudeProvider and GroqProvider satisfy. Keeps AiService
+ * provider-agnostic below — the route decision becomes "pick a provider, call
+ * the same methods on it".
+ */
+interface LlmProvider {
+  isAvailable(): boolean;
+  generateMessageVariations: ClaudeProvider["generateMessageVariations"];
+  generateMarketingContent: ClaudeProvider["generateMarketingContent"];
+}
 
 export interface GenerateMessageResult {
   variations: MessageVariation[];
@@ -49,15 +61,25 @@ export class AiService {
   private readonly logger = new Logger(AiService.name);
   private readonly useMock: boolean;
   private readonly mockModelName: string;
+  private readonly providerName: "anthropic" | "groq";
+  private readonly llm: LlmProvider;
 
   constructor(
     private readonly prisma: PrismaService,
     config: ConfigService<AppConfig, true>,
     private readonly claude: ClaudeProvider,
+    private readonly groq: GroqProvider,
     private readonly rateLimit: AiRateLimitService,
   ) {
     this.useMock = config.get("useMockAi", { infer: true });
     this.mockModelName = "mock-sonnet";
+    this.providerName = config.get("aiProvider", { infer: true });
+    this.llm = this.providerName === "groq" ? groq : claude;
+    if (!this.useMock) {
+      this.logger.log(
+        `AI provider: ${this.providerName} (available=${this.llm.isAvailable()})`,
+      );
+    }
   }
 
   private async enforceRateLimit(userId: string) {
@@ -80,11 +102,11 @@ export class AiService {
 
   /**
    * Route decision: USE_MOCK_AI=true → mock engine. USE_MOCK_AI=false
-   * → Claude API, with mock fallback if Claude throws (never let the UI
-   * block on an AI outage).
+   * → configured provider (AI_PROVIDER=anthropic|groq), with mock fallback
+   * if the call throws (never let the UI block on an AI outage).
    */
-  private useClaude(): boolean {
-    return !this.useMock && this.claude.isAvailable();
+  private useRealLlm(): boolean {
+    return !this.useMock && this.llm.isAvailable();
   }
 
   async generateMessage(
@@ -103,9 +125,9 @@ export class AiService {
     let modelUsed = this.mockModelName;
     let tokensUsed: number | undefined;
 
-    if (this.useClaude()) {
+    if (this.useRealLlm()) {
       try {
-        const result = await this.claude.generateMessageVariations({
+        const result = await this.llm.generateMessageVariations({
           context: ctx,
           intent: dto.intent,
           tone: dto.tone,
@@ -116,7 +138,7 @@ export class AiService {
           result.metadata.inputTokens + result.metadata.outputTokens;
       } catch (err) {
         this.logger.error(
-          `Claude call failed, falling back to mock: ${(err as Error).message}`,
+          `${this.providerName} call failed, falling back to mock: ${(err as Error).message}`,
         );
       }
     }
@@ -191,9 +213,9 @@ export class AiService {
     let modelUsed = this.mockModelName;
     let tokensUsed: number | undefined;
 
-    if (this.useClaude()) {
+    if (this.useRealLlm()) {
       try {
-        const result = await this.claude.generateMarketingContent({
+        const result = await this.llm.generateMarketingContent({
           platform: dto.platform,
           project: projectCtx,
           targetAudience: dto.targetAudience,
@@ -205,7 +227,7 @@ export class AiService {
           result.metadata.inputTokens + result.metadata.outputTokens;
       } catch (err) {
         this.logger.error(
-          `Claude content call failed, falling back to mock: ${(err as Error).message}`,
+          `${this.providerName} content call failed, falling back to mock: ${(err as Error).message}`,
         );
       }
     }
